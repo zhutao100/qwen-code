@@ -407,10 +407,9 @@ describe('convertToFunctionResponse', () => {
         functionResponse: {
           name: toolName,
           id: callId,
-          response: { output: 'Tool execution succeeded.' },
+          response: { output: 'Some textual descriptionAnother text part' },
         },
       },
-      ...llmContent,
     ]);
   });
 
@@ -469,7 +468,7 @@ describe('convertToFunctionResponse', () => {
         functionResponse: {
           name: toolName,
           id: callId,
-          response: { output: 'Tool execution succeeded.' },
+          response: { output: '' },
         },
       },
     ]);
