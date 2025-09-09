@@ -19,7 +19,8 @@ export const ContextUsageDisplay = ({
 
   return (
     <Text color={Colors.Gray}>
-      ({((1 - percentage) * 100).toFixed(0)}% context left)
+      ({((1 - percentage) * 100).toFixed(0)}% context left, total:{' '}
+      {tokenLimit(model)})
     </Text>
   );
 };
