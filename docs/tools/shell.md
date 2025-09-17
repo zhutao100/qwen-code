@@ -25,7 +25,6 @@ When using `run_shell_command`, the command is executed as a subprocess. `run_sh
 - `Error`: Any error message reported by the subprocess.
 - `Exit Code`: The exit code of the command.
 - `Signal`: The signal number if the command was terminated by a signal.
-- `Background PIDs`: A list of PIDs for any background processes started.
 
 Usage:
 
