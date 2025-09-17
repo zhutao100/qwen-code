@@ -102,46 +102,23 @@ describe('ShellTool', () => {
 
   describe('build', () => {
     it('should return an invocation for a valid command', () => {
-      const invocation = shellTool.build({
-        command: 'ls -l',
-        is_background: false,
-      });
+      const invocation = shellTool.build({ command: 'ls -l' });
       expect(invocation).toBeDefined();
     });
 
     it('should throw an error for an empty command', () => {
-      expect(() =>
-        shellTool.build({ command: ' ', is_background: false }),
-      ).toThrow('Command cannot be empty.');
+      expect(() => shellTool.build({ command: ' ' })).toThrow(
+        'Command cannot be empty.',
+      );
     });
 
     it('should throw an error for a non-existent directory', () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
       expect(() =>
-        shellTool.build({
-          command: 'ls',
-          directory: 'rel/path',
-          is_background: false,
-        }),
+        shellTool.build({ command: 'ls', directory: 'rel/path' }),
       ).toThrow(
         "Directory 'rel/path' is not a registered workspace directory.",
       );
-    });
-
-    it('should include background indicator in description when is_background is true', () => {
-      const invocation = shellTool.build({
-        command: 'npm start',
-        is_background: true,
-      });
-      expect(invocation.getDescription()).toContain('[background]');
-    });
-
-    it('should not include background indicator in description when is_background is false', () => {
-      const invocation = shellTool.build({
-        command: 'npm test',
-        is_background: false,
-      });
-      expect(invocation.getDescription()).not.toContain('[background]');
     });
   });
 
@@ -166,10 +143,7 @@ describe('ShellTool', () => {
     };
 
     it('should wrap command on linux and parse pgrep output', async () => {
-      const invocation = shellTool.build({
-        command: 'my-command &',
-        is_background: false,
-      });
+      const invocation = shellTool.build({ command: 'my-command &' });
       const promise = invocation.execute(mockAbortSignal);
       resolveShellExecution({ pid: 54321 });
 
@@ -193,90 +167,9 @@ describe('ShellTool', () => {
       expect(vi.mocked(fs.unlinkSync)).toHaveBeenCalledWith(tmpFile);
     });
 
-    it('should add ampersand to command when is_background is true and command does not end with &', async () => {
-      const invocation = shellTool.build({
-        command: 'npm start',
-        is_background: true,
-      });
-      const promise = invocation.execute(mockAbortSignal);
-      resolveShellExecution({ pid: 54321 });
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('54321\n54322\n');
-
-      await promise;
-
-      const tmpFile = path.join(os.tmpdir(), 'shell_pgrep_abcdef.tmp');
-      const wrappedCommand = `{ npm start & }; __code=$?; pgrep -g 0 >${tmpFile} 2>&1; exit $__code;`;
-      expect(mockShellExecutionService).toHaveBeenCalledWith(
-        wrappedCommand,
-        expect.any(String),
-        expect.any(Function),
-        mockAbortSignal,
-        false,
-        undefined,
-        undefined,
-      );
-    });
-
-    it('should not add extra ampersand when is_background is true and command already ends with &', async () => {
-      const invocation = shellTool.build({
-        command: 'npm start &',
-        is_background: true,
-      });
-      const promise = invocation.execute(mockAbortSignal);
-      resolveShellExecution({ pid: 54321 });
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('54321\n54322\n');
-
-      await promise;
-
-      const tmpFile = path.join(os.tmpdir(), 'shell_pgrep_abcdef.tmp');
-      const wrappedCommand = `{ npm start & }; __code=$?; pgrep -g 0 >${tmpFile} 2>&1; exit $__code;`;
-      expect(mockShellExecutionService).toHaveBeenCalledWith(
-        wrappedCommand,
-        expect.any(String),
-        expect.any(Function),
-        mockAbortSignal,
-        false,
-        undefined,
-        undefined,
-      );
-    });
-
-    it('should not add ampersand when is_background is false', async () => {
-      const invocation = shellTool.build({
-        command: 'npm test',
-        is_background: false,
-      });
-      const promise = invocation.execute(mockAbortSignal);
-      resolveShellExecution({ pid: 54321 });
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue('54321\n54322\n');
-
-      await promise;
-
-      const tmpFile = path.join(os.tmpdir(), 'shell_pgrep_abcdef.tmp');
-      const wrappedCommand = `{ npm test; }; __code=$?; pgrep -g 0 >${tmpFile} 2>&1; exit $__code;`;
-      expect(mockShellExecutionService).toHaveBeenCalledWith(
-        wrappedCommand,
-        expect.any(String),
-        expect.any(Function),
-        mockAbortSignal,
-        false,
-        undefined,
-        undefined,
-      );
-    });
-
     it('should not wrap command on windows', async () => {
       vi.mocked(os.platform).mockReturnValue('win32');
-      const invocation = shellTool.build({
-        command: 'dir',
-        is_background: false,
-      });
+      const invocation = shellTool.build({ command: 'dir' });
       const promise = invocation.execute(mockAbortSignal);
       resolveShellExecution({
         rawOutput: Buffer.from(''),
@@ -302,10 +195,7 @@ describe('ShellTool', () => {
 
     it('should format error messages correctly', async () => {
       const error = new Error('wrapped command failed');
-      const invocation = shellTool.build({
-        command: 'user-command',
-        is_background: false,
-      });
+      const invocation = shellTool.build({ command: 'user-command' });
       const promise = invocation.execute(mockAbortSignal);
       resolveShellExecution({
         error,
@@ -327,7 +217,6 @@ describe('ShellTool', () => {
       const error = new Error('command failed');
       const invocation = shellTool.build({
         command: 'user-command',
-        is_background: false,
       });
       const promise = invocation.execute(mockAbortSignal);
       resolveShellExecution({
@@ -343,19 +232,15 @@ describe('ShellTool', () => {
     });
 
     it('should throw an error for invalid parameters', () => {
-      expect(() =>
-        shellTool.build({ command: '', is_background: false }),
-      ).toThrow('Command cannot be empty.');
+      expect(() => shellTool.build({ command: '' })).toThrow(
+        'Command cannot be empty.',
+      );
     });
 
     it('should throw an error for invalid directory', () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
       expect(() =>
-        shellTool.build({
-          command: 'ls',
-          directory: 'nonexistent',
-          is_background: false,
-        }),
+        shellTool.build({ command: 'ls', directory: 'nonexistent' }),
       ).toThrow(
         `Directory 'nonexistent' is not a registered workspace directory.`,
       );
@@ -369,10 +254,7 @@ describe('ShellTool', () => {
         'summarized output',
       );
 
-      const invocation = shellTool.build({
-        command: 'ls',
-        is_background: false,
-      });
+      const invocation = shellTool.build({ command: 'ls' });
       const promise = invocation.execute(mockAbortSignal);
       resolveExecutionPromise({
         output: 'long output',
@@ -404,10 +286,7 @@ describe('ShellTool', () => {
       });
       vi.mocked(fs.existsSync).mockReturnValue(true); // Pretend the file exists
 
-      const invocation = shellTool.build({
-        command: 'a-command',
-        is_background: false,
-      });
+      const invocation = shellTool.build({ command: 'a-command' });
       await expect(invocation.execute(mockAbortSignal)).rejects.toThrow(error);
 
       const tmpFile = path.join(os.tmpdir(), 'shell_pgrep_abcdef.tmp');
@@ -425,10 +304,7 @@ describe('ShellTool', () => {
       });
 
       it('should throttle text output updates', async () => {
-        const invocation = shellTool.build({
-          command: 'stream',
-          is_background: false,
-        });
+        const invocation = shellTool.build({ command: 'stream' });
         const promise = invocation.execute(mockAbortSignal, updateOutputMock);
 
         // First chunk, should be throttled.
@@ -465,10 +341,7 @@ describe('ShellTool', () => {
       });
 
       it('should immediately show binary detection message and throttle progress', async () => {
-        const invocation = shellTool.build({
-          command: 'cat img',
-          is_background: false,
-        });
+        const invocation = shellTool.build({ command: 'cat img' });
         const promise = invocation.execute(mockAbortSignal, updateOutputMock);
 
         mockShellOutputCallback({ type: 'binary_detected' });
@@ -515,7 +388,7 @@ describe('ShellTool', () => {
     describe('addCoAuthorToGitCommit', () => {
       it('should add co-author to git commit with double quotes', async () => {
         const command = 'git commit -m "Initial commit"';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         // Mock the shell execution to return success
@@ -548,7 +421,7 @@ describe('ShellTool', () => {
 
       it('should add co-author to git commit with single quotes', async () => {
         const command = "git commit -m 'Fix bug'";
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -579,7 +452,7 @@ describe('ShellTool', () => {
 
       it('should handle git commit with additional flags', async () => {
         const command = 'git commit -a -m "Add feature"';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -610,7 +483,7 @@ describe('ShellTool', () => {
 
       it('should not modify non-git commands', async () => {
         const command = 'npm install';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -640,7 +513,7 @@ describe('ShellTool', () => {
 
       it('should not modify git commands without -m flag', async () => {
         const command = 'git commit';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -670,7 +543,7 @@ describe('ShellTool', () => {
 
       it('should handle git commit with escaped quotes in message', async () => {
         const command = 'git commit -m "Fix \\"quoted\\" text"';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -708,7 +581,7 @@ describe('ShellTool', () => {
         });
 
         const command = 'git commit -m "Initial commit"';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -745,7 +618,7 @@ describe('ShellTool', () => {
         });
 
         const command = 'git commit -m "Test commit"';
-        const invocation = shellTool.build({ command, is_background: false });
+        const invocation = shellTool.build({ command });
         const promise = invocation.execute(mockAbortSignal);
 
         resolveExecutionPromise({
@@ -778,7 +651,7 @@ describe('ShellTool', () => {
 
   describe('shouldConfirmExecute', () => {
     it('should request confirmation for a new command and whitelist it on "Always"', async () => {
-      const params = { command: 'npm install', is_background: false };
+      const params = { command: 'npm install' };
       const invocation = shellTool.build(params);
       const confirmation = await invocation.shouldConfirmExecute(
         new AbortController().signal,
@@ -793,10 +666,7 @@ describe('ShellTool', () => {
       );
 
       // Should now be whitelisted
-      const secondInvocation = shellTool.build({
-        command: 'npm test',
-        is_background: false,
-      });
+      const secondInvocation = shellTool.build({ command: 'npm test' });
       const secondConfirmation = await secondInvocation.shouldConfirmExecute(
         new AbortController().signal,
       );
@@ -804,9 +674,7 @@ describe('ShellTool', () => {
     });
 
     it('should throw an error if validation fails', () => {
-      expect(() =>
-        shellTool.build({ command: '', is_background: false }),
-      ).toThrow();
+      expect(() => shellTool.build({ command: '' })).toThrow();
     });
   });
 
@@ -838,7 +706,6 @@ describe('validateToolParams', () => {
     const result = shellTool.validateToolParams({
       command: 'ls',
       directory: 'test',
-      is_background: false,
     });
     expect(result).toBeNull();
   });
@@ -855,7 +722,6 @@ describe('validateToolParams', () => {
     const result = shellTool.validateToolParams({
       command: 'ls',
       directory: 'test2',
-      is_background: false,
     });
     expect(result).toContain('is not a registered workspace directory');
   });
@@ -874,7 +740,6 @@ describe('build', () => {
     const invocation = shellTool.build({
       command: 'ls',
       directory: 'test',
-      is_background: false,
     });
     expect(invocation).toBeDefined();
   });
@@ -892,7 +757,6 @@ describe('build', () => {
       shellTool.build({
         command: 'ls',
         directory: 'test2',
-        is_background: false,
       }),
     ).toThrow('is not a registered workspace directory');
   });

@@ -38,7 +38,6 @@ export const OUTPUT_UPDATE_INTERVAL_MS = 1000;
 
 export interface ShellToolParams {
   command: string;
-  is_background: boolean;
   description?: string;
   directory?: string;
 }
@@ -61,10 +60,6 @@ class ShellToolInvocation extends BaseToolInvocation<
     // note description is needed even if validation fails due to absolute path
     if (this.params.directory) {
       description += ` [in ${this.params.directory}]`;
-    }
-    // append background indicator
-    if (this.params.is_background) {
-      description += ` [background]`;
     }
     // append optional (description), replacing any line breaks with spaces
     if (this.params.description) {
@@ -125,20 +120,12 @@ class ShellToolInvocation extends BaseToolInvocation<
       // Add co-author to git commit commands
       const processedCommand = this.addCoAuthorToGitCommit(strippedCommand);
 
-      const shouldRunInBackground = this.params.is_background;
-      let finalCommand = processedCommand;
-
-      // If explicitly marked as background and doesn't already end with &, add it
-      if (shouldRunInBackground && !finalCommand.trim().endsWith('&')) {
-        finalCommand = finalCommand.trim() + ' &';
-      }
-
       // pgrep is not available on Windows, so we can't get background PIDs
       const commandToExecute = isWindows
-        ? finalCommand
+        ? processedCommand
         : (() => {
             // wrap command to append subprocess pids (via pgrep) to temporary file
-            let command = finalCommand.trim();
+            let command = processedCommand.trim();
             if (!command.endsWith('&')) command += ';';
             return `{ ${command} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
           })();
@@ -355,23 +342,6 @@ Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 function getShellToolDescription(): string {
   const toolDescription = `
 
-      **Background vs Foreground Execution:**
-      You should decide whether commands should run in background or foreground based on their nature:
-      
-      **Use background execution (is_background: true) for:**
-      - Long-running development servers: \`npm run start\`, \`npm run dev\`, \`yarn dev\`, \`bun run start\`
-      - Build watchers: \`npm run watch\`, \`webpack --watch\`
-      - Database servers: \`mongod\`, \`mysql\`, \`redis-server\`
-      - Web servers: \`python -m http.server\`, \`php -S localhost:8000\`
-      - Any command expected to run indefinitely until manually stopped
-      
-      **Use foreground execution (is_background: false) for:**
-      - One-time commands: \`ls\`, \`cat\`, \`grep\`
-      - Build commands: \`npm run build\`, \`make\`
-      - Installation commands: \`npm install\`, \`pip install\`
-      - Git operations: \`git commit\`, \`git push\`
-      - Test runs: \`npm test\`, \`pytest\`
-      
       The following information is returned:
 
       Command: Executed command.
@@ -419,11 +389,6 @@ export class ShellTool extends BaseDeclarativeTool<
             type: 'string',
             description: getCommandDescription(),
           },
-          is_background: {
-            type: 'boolean',
-            description:
-              'Whether to run the command in background. Default is false. Set to true for long-running processes like development servers, watchers, or daemons that should continue running without blocking further commands.',
-          },
           description: {
             type: 'string',
             description:
@@ -435,7 +400,7 @@ export class ShellTool extends BaseDeclarativeTool<
               '(OPTIONAL) Directory to run the command in, if not the project root directory. Must be relative to the project root directory and must already exist.',
           },
         },
-        required: ['command', 'is_background'],
+        required: ['command'],
       },
       false, // output is not markdown
       true, // output can be updated
