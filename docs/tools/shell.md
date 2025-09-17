@@ -56,7 +56,6 @@ The tool returns detailed information about the execution, including:
 - `Error`: Any error message reported by the subprocess.
 - `Exit Code`: The exit code of the command.
 - `Signal`: The signal number if the command was terminated by a signal.
-- `Background PIDs`: A list of PIDs for any background processes started.
 
 Usage:
 
