@@ -28,9 +28,7 @@ exports[`ShellTool > getDescription > should return the non-windows description 
       Stderr: Output on stderr stream. Can be \`(empty)\` or partial on error and for any unwaited background processes.
       Error: Error or \`(none)\` if no error was reported for the subprocess.
       Exit Code: Exit code or \`(none)\` if terminated by signal.
-      Signal: Signal number or \`(none)\` if no signal was received.
-      Background PIDs: List of background processes started or \`(none)\`.
-      Process Group PGID: Process group started or \`(none)\`"
+      Signal: Signal number or \`(none)\` if no signal was received."
 `;
 
 exports[`ShellTool > getDescription > should return the windows description when on windows 1`] = `
@@ -61,7 +59,5 @@ exports[`ShellTool > getDescription > should return the windows description when
       Stderr: Output on stderr stream. Can be \`(empty)\` or partial on error and for any unwaited background processes.
       Error: Error or \`(none)\` if no error was reported for the subprocess.
       Exit Code: Exit code or \`(none)\` if terminated by signal.
-      Signal: Signal number or \`(none)\` if no signal was received.
-      Background PIDs: List of background processes started or \`(none)\`.
-      Process Group PGID: Process group started or \`(none)\`"
+      Signal: Signal number or \`(none)\` if no signal was received."
 `;
