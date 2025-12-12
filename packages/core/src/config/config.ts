@@ -58,8 +58,6 @@ import { SkillTool } from '../tools/skill.js';
 import { TaskTool } from '../tools/task.js';
 import { TodoWriteTool } from '../tools/todoWrite.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
-import { WebFetchTool } from '../tools/web-fetch.js';
-import { WebSearchTool } from '../tools/web-search/index.js';
 import { WriteFileTool } from '../tools/write-file.js';
 
 // Other modules
@@ -1396,13 +1394,6 @@ export class Config {
     registerCoreTool(MemoryTool);
     registerCoreTool(TodoWriteTool, this);
     !this.sdkMode && registerCoreTool(ExitPlanModeTool, this);
-    registerCoreTool(WebFetchTool, this);
-    // Conditionally register web search tool if web search provider is configured
-    // buildWebSearchConfig ensures qwen-oauth users get dashscope provider, so
-    // if tool is registered, config must exist
-    if (this.getWebSearchConfig()) {
-      registerCoreTool(WebSearchTool, this);
-    }
 
     await registry.discoverAllTools();
     console.debug('ToolRegistry created', registry.getAllToolNames());
